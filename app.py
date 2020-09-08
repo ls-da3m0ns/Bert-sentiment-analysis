@@ -58,15 +58,8 @@ def predict(sentence):
     start_time = time.time()
     positive_prediction = sentence_prediction(sentence)
     negative_prediction = 1 - positive_prediction
-    response = {}
-    response["response"] = {
-        'positive': str(positive_prediction),
-        'negative': str(negative_prediction),
-        'time_taken': str(time.time() - start_time),
-    }
-    
+
     return render_template("outputs.html",positive=positive_prediction,negative=negative_prediction,time_taken=str(time.time() - start_time))
-   # return flask.jsonify(response)
 
 
 @app.route("/",methods=["GET"])
