@@ -65,7 +65,7 @@ def predict(sentence):
         'time_taken': str(time.time() - start_time),
     }
     
-    return render_template("outputs.html",values=positive_prediction)
+    return render_template("outputs.html",positive=positive_prediction,negative=negative_prediction,time_taken=str(time.time() - start_time))
    # return flask.jsonify(response)
 
 
@@ -84,4 +84,4 @@ if __name__ == "__main__":
     MODEL.load_state_dict(torch.load(config.MODEL_PATH, map_location=torch.device('cpu')))
     MODEL.to(DEVICE)
     MODEL.eval()
-    app.run(host="0.0.0.0", port="9999",debug=True)
+    app.run(host="127.0.0.1", port="9999",debug=True)
