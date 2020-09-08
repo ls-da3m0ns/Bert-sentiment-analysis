@@ -1,5 +1,5 @@
-#### Bert Sentiment Analysis ####
-## Introduction ##
-## Demo Images ##
-## Accuracy ## 
-## Requirements ## 
+# Bert Sentiment Analysis #
+### Introduction ###
+### Demo Images ###
+### Accuracy ###
+### Requirements ### 
