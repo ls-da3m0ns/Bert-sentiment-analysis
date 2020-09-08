@@ -6,7 +6,7 @@
 </div>
 
 <div align="center">
-  <img src="./images/bert-demo-output.PNG" width="600">  
+  <img src="./images/bert-demo-ouput.PNG" width="600">  
 </div>
 
 ### Accuracy ###
