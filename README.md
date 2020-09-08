@@ -1,5 +1,12 @@
 # Bert Sentiment Analysis #
 ### Introduction ###
+
+### Requirements ### 
+* Pytorch
+* Flask
+* Python
+* HTML/CSS/JS
+
 ### Demo Images ###
 <div align="center">
   <p><b>Index page which take sentence as a input. </b></p>
@@ -18,4 +25,3 @@
   <img src="./images/accuracy.png" width="600">  
 </div>
 
-### Requirements ### 
