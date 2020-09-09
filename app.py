@@ -1,6 +1,7 @@
 from src import config 
 import torch 
 import time
+import os
 import torch.nn as nn
 
 import flask 
@@ -77,4 +78,5 @@ if __name__ == "__main__":
     MODEL.load_state_dict(torch.load(config.MODEL_PATH, map_location=torch.device('cpu')))
     MODEL.to(DEVICE)
     MODEL.eval()
-    app.run(host="0.0.0.0", port="9999",debug=True)
+    print("PORT got from port variable {}".format(os.environ['PORT']))
+    app.run(host="0.0.0.0", port=os.environ['PORT'],debug=True)
