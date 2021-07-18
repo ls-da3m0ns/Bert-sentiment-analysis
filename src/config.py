@@ -9,3 +9,4 @@ BERT_PATH = "bert-base-uncased"
 MODEL_PATH = BASE_PATH + "src/model.bin"
 TRAINING_FILE = BASE_PATH + "/input/imdb.csv"
 TOKENIZER = transformers.BertTokenizer.from_pretrained(BERT_PATH,do_lower_case = True)
+UPLOAD_FOLDER = './input/'

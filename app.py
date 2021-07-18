@@ -10,6 +10,7 @@ from src.model import BERTBaseUncased
 from flask import render_template
 
 app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = config.UPLOAD_FOLDER
 
 MODEL = None
 DEVICE = "cpu"
@@ -62,6 +63,23 @@ def predict(sentence):
 
     return render_template("outputs.html",positive=positive_prediction,negative=negative_prediction,time_taken=str(time.time() - start_time))
 
+@app.route('/fileupload', methods=['GET','POST'])
+def upload_file():
+    if request.method == 'POST':
+        if 'tmp_filename' not in request.files:
+            return 'there is no tmp_filename in form!'
+        file1 = request.files['tmp_filename']
+        path = os.path.join(app.config['UPLOAD_FOLDER'], file1.filename)
+        file1.save(path)
+        return path
+        return 'ok'
+    return '''
+    <h1>Upload new File</h1>
+    <form method="post" enctype="multipart/form-data">
+      <input type="file" name="tmp_filename">
+      <input type="submit">
+    </form>
+    '''
 
 @app.route("/",methods=["GET"])
 def start_page():
