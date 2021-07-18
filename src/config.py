@@ -4,9 +4,9 @@ MAX_LEN = 512
 TRAIN_BATCH_SIZE = 14
 VALID_BATCH_SIZE = 8
 EPOCHS = 3
-BASE_PATH = "/home/ubuntu/projects/github/new/Bert-sentiment-analysis"
+BASE_PATH = "/home/Bert-sentiment-analysis"
 BERT_PATH = "bert-base-uncased"
-MODEL_PATH = BASE_PATH + "/../../Bert-sentiment-analysis/src/model.bin"
+MODEL_PATH = BASE_PATH + "src/model.bin"
 TRAINING_FILE = BASE_PATH + "/input/imdb.csv"
 TOKENIZER = transformers.BertTokenizer.from_pretrained(BERT_PATH,do_lower_case = True)
 UPLOAD_FOLDER = './input/'
