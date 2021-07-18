@@ -99,7 +99,7 @@ def upload_text():
         @TODO pass this text to predict function of your model
         """
         prediction = "something_tmp" #call your model here
-        return processed_text
+        return prediction
     return '''
     <h1>Enter text below</h1>
    <form method="POST">
