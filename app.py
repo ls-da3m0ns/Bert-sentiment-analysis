@@ -8,6 +8,7 @@ import flask
 from flask import Flask,request
 from src.model import BERTBaseUncased
 from flask import render_template
+import cv2
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = config.UPLOAD_FOLDER
@@ -68,11 +69,17 @@ def upload_file():
     if request.method == 'POST':
         if 'tmp_filename' not in request.files:
             return 'there is no tmp_filename in form!'
+
         file1 = request.files['tmp_filename']
         path = os.path.join(app.config['UPLOAD_FOLDER'], file1.filename)
         file1.save(path)
-        return path
-        return 'ok'
+
+        img = cv2.imread(path)
+        """
+        @TODO pass this img to predict function of your model
+        """
+        prediction = "something_tmp" #call your model here
+        return prediction
     return '''
     <h1>Upload new File</h1>
     <form method="post" enctype="multipart/form-data">
@@ -80,6 +87,27 @@ def upload_file():
       <input type="submit">
     </form>
     '''
+
+
+
+@app.route('/textupload', methods=['GET','POST'])
+def upload_text():
+    if request.method == 'POST':
+        text = request.form['text']
+        processed_text = text.upper()
+        """
+        @TODO pass this text to predict function of your model
+        """
+        prediction = "something_tmp" #call your model here
+        return processed_text
+    return '''
+    <h1>Enter text below</h1>
+   <form method="POST">
+    <input name="text">
+    <input type="submit">
+    </form>
+    '''
+
 
 @app.route("/",methods=["GET"])
 def start_page():
@@ -96,5 +124,5 @@ if __name__ == "__main__":
     MODEL.load_state_dict(torch.load(config.MODEL_PATH, map_location=torch.device('cpu')))
     MODEL.to(DEVICE)
     MODEL.eval()
-    print("PORT got from port variable {}".format(os.environ['PORT']))
-    app.run(host="0.0.0.0", port=os.environ['PORT'],debug=True)
+    print("PORT got from port variable {}".format(config.PORT))
+    app.run(host="0.0.0.0", port=config.PORT,debug=True)
