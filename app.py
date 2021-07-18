@@ -1,68 +1,50 @@
-from src import config 
-import torch 
 import time
 import os
-import torch.nn as nn
+from textblob import TextBlob
 
 import flask 
 from flask import Flask,request
-from src.model import BERTBaseUncased
 from flask import render_template
+
+from tempfile import NamedTemporaryFile
 import cv2
+import easyocr
+
 
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = config.UPLOAD_FOLDER
 
-MODEL = None
-DEVICE = "cpu"
+reader = None
+
+def populate_reader():
+    global reader
+    reader = easyocr.Reader(['en'])
+
+def paragraph_prediction(paragraph):
+    data = dict()
+    blob = TextBlob(paragraph)
+
+    overall_polarity = blob.sentiment.polarity
+    overall_subjectivity = blob.sentiment.subjectivity
+
+    sentences = []
+    for sentence in blob.sentences:
+        sentences.append([str(sentence),
+                f"{sentence.sentiment.polarity:.4f}",
+                f"{sentence.sentiment.subjectivity:.4f}",
+                sentence.sentiment_assessments.assessments])
+
+    for i in range(len(sentences)):
+        for j in range(len(sentences[i][-1])):
+            ahem = sentences[i][-1][j]
+            sentences[i][-1][j] = (ahem[0], f"{ahem[1]:.4f}", f"{ahem[2]:.4f}")
+
+    return {
+        "polarity": f"{overall_polarity:.4f}",
+        "subjectivity": f"{overall_subjectivity:.4f}",
+        "sentences": sentences
+    }
 
 
-def sentence_prediction(sentence):
-    tokenizer = config.TOKENIZER
-    max_len = config.MAX_LEN
-    
-    sentence = str(sentence)
-    sentence = " ".join(sentence.split())
-    
-    inputs = tokenizer.encode_plus(
-            sentence,
-            None,
-            add_special_tokens=True,
-            max_length = max_len,
-    )
-    
-    ids = inputs["input_ids"]
-    mask = inputs["attention_mask"]
-    token_type_ids = inputs["token_type_ids"]
-    
-    padding_length = max_len - len(ids)
-    ids = ids + ([0] * padding_length)
-    mask = mask + ([0] * padding_length)
-    token_type_ids = token_type_ids + ([0] * padding_length)
-
-    ids = torch.tensor(ids, dtype=torch.long).unsqueeze(0)
-    mask = torch.tensor(mask, dtype=torch.long).unsqueeze(0)
-    token_type_ids = torch.tensor(token_type_ids, dtype=torch.long).unsqueeze(0)
-    
-    ids = ids.to(DEVICE, dtype=torch.long)
-    token_type_ids = token_type_ids.to(DEVICE, dtype=torch.long)
-    mask = mask.to(DEVICE, dtype=torch.long)
-    
-    outputs = MODEL(ids=ids, mask=mask, token_type_ids=token_type_ids)
-
-    outputs = torch.sigmoid(outputs).cpu().detach().numpy()
-    return outputs[0][0]
-
-    
-
-@app.route("/predict")
-def predict(sentence):
-    #sentence = request.args.get("sentence")
-    start_time = time.time()
-    positive_prediction = sentence_prediction(sentence)
-    negative_prediction = 1 - positive_prediction
-
-    return render_template("outputs.html",positive=positive_prediction,negative=negative_prediction,time_taken=str(time.time() - start_time))
 
 @app.route('/fileupload', methods=['GET','POST'])
 def upload_file():
@@ -71,14 +53,18 @@ def upload_file():
             return 'there is no tmp_filename in form!'
 
         file1 = request.files['tmp_filename']
-        path = os.path.join(app.config['UPLOAD_FOLDER'], file1.filename)
-        file1.save(path)
+        extention = os.path.splitext(file1.filename)
+        with NamedTemporaryFile() as temp:
+            iname = "".join([str(temp.name), extention[-1]])
+            file1.save(iname)
+            result = reader.readtext(iname)
 
-        img = cv2.imread(path)
-        """
-        @TODO pass this img to predict function of your model
-        """
-        prediction = "something_tmp" #call your model here
+        text_chunks = []
+        for res in result:
+            text_chunks.append(res[1])
+
+        text = " ".join(text_chunks)
+        prediction = paragraph_prediction(text)
         return prediction
     return '''
     <h1>Upload new File</h1>
@@ -88,18 +74,14 @@ def upload_file():
     </form>
     '''
 
-
-
 @app.route('/textupload', methods=['GET','POST'])
 def upload_text():
     if request.method == 'POST':
         text = request.form['text']
-        processed_text = text.upper()
-        """
-        @TODO pass this text to predict function of your model
-        """
-        prediction = "something_tmp" #call your model here
+
+        prediction = paragraph_prediction(text) #call your model here
         return prediction
+
     return '''
     <h1>Enter text below</h1>
    <form method="POST">
@@ -107,6 +89,15 @@ def upload_text():
     <input type="submit">
     </form>
     '''
+
+
+@app.route("/predict")
+def predict(sentence):
+    #sentence = request.args.get("sentence")
+    start_time = time.time()
+    paragraph_prediction(sentence)
+
+    return render_template("outputs.html",positive=1,negative=2,time_taken=str(time.time() - start_time))
 
 
 @app.route("/",methods=["GET"])
@@ -120,9 +111,5 @@ def input_accept():
     return predict(text)
 
 if __name__ == "__main__":
-    MODEL = BERTBaseUncased()
-    MODEL.load_state_dict(torch.load(config.MODEL_PATH, map_location=torch.device('cpu')))
-    MODEL.to(DEVICE)
-    MODEL.eval()
-    print("PORT got from port variable {}".format(config.PORT))
-    app.run(host="0.0.0.0", port=config.PORT,debug=True)
+    populate_reader()
+    app.run(debug=True)
